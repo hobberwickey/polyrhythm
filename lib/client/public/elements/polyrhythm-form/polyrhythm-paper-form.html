@@ -1,0 +1,33 @@
+<link href="../../components/polymer/polymer.html" rel="import">
+<link href="../../components/paper-input/paper-input.html" rel="import">
+<link href="../../components/paper-radio-button/paper-radio-button.html" rel="import">
+<link href="../../components/paper-radio-group/paper-radio-group.html" rel="import">
+<link href="../../components/iron-selector/iron-selector.html" rel="import">
+<link href="../../components/iron-ajax/iron-request.html" rel="import">
+<link href="../../components/iron-form/iron-form.html" rel="import">
+
+<link href='polyrhythm-core.html' rel='import'>
+<link href='polyrhythm-dom.html' rel='import'>
+<link href='polyrhythm-paper-inputs.html' rel='import'>
+<link href='polyrhythm-paper-components.html' rel='import'>
+<link href='polyrhythm-overrides.html' rel='import'>
+
+<link href='elements/polyrhythm-select.html' rel='import'>
+<link href='elements/polyrhythm-multiselect.html' rel='import'>
+<link href='elements/polyrhythm-textarea.html' rel='import'>
+<link href='elements/polyrhythm-checkbox.html' rel='import'>
+<link href='elements/polyrhythm-file-input.html' rel='import'>
+<link href='elements/polyrhythm-image-input.html' rel='import'>
+<link href='elements/polyrhythm-radio.html' rel='import'>
+<link href='elements/polyrhythm-datetime.html' rel='import'>
+
+<dom-module id='polyrhythm-form'>
+  <template></template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "polyrhythm-paper-form",
+    behaviors: [PolyrhythmDom, PolyrhythmPaperInputs, PolyrhythmPaperComponents, PolyrhythmCore]
+  })
+</script>

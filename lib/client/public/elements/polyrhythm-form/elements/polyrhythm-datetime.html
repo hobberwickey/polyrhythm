@@ -1,0 +1,27 @@
+<link rel='import' href='../../../components/paper-input/paper-input-container.html'>
+<link rel='import' href='resources/polyrhythm-datetime-helper.html'>
+
+<dom-module id='polyrhythm-datetime'>
+  <style>
+    
+  </style>
+</dom-module>
+
+<script>
+  (function(){
+      Polymer({
+      is: "polyrhythm-datetime",
+      
+      properties: {
+        _value: { type: String, value: "", notify: true },
+        _name: { type: String, value: "" }
+      },
+
+      ready: function(){
+        
+      },
+
+      behaviors: [PolyrhythmDateTimeHelper]
+    })
+  })();
+</script>

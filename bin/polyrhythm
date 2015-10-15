@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+require "polyrhythm"
+
+command = ARGV[0] 
+
+if command == "scaffold"
+
+elsif command == "install_server"
+
+elsif command == "install_client"
+
+elsif command == "install_auth"
+
+elsif command == "create_model"
+  Polyrhythm::Setup::create_model(ARGV[1])
+elsif command == "create_migration"
+  Polyrhythm::Setup::create_migration(ARGV[1])
+else
+  throw "Command Not Recognized"
+end

@@ -1,0 +1,19 @@
+<link href="../../components/polymer/polymer.html" rel="import">
+<link href="../../components/iron-ajax/iron-ajax.html" rel="import">
+
+<link href='polyrhythm-core.html' rel='import'>
+<link href='polyrhythm-dom.html' rel='import'>
+<link href='polyrhythm-inputs.html' rel='import'>
+<link href='polyrhythm-components.html' rel='import'>
+<link href='polyrhythm-overrides.html' rel='import'>
+
+<dom-module id='polyrhythm-form'>
+	<template></template>
+</dom-module>
+
+<script>
+	Polymer({
+		is: "polyrhythm-form",
+		behaviors: [PolyrhythmDom, PolyrhythmInputs, PolyrhythmComponents, PolyrhythmCore]
+	})
+</script>

@@ -1,0 +1,111 @@
+<link rel='import' href='../../../components/paper-input/paper-input-container.html'>
+<link rel='import' href='../../../components/iron-icon/iron-icon.html'>
+<link rel='import' href='../../../components/iron-icons/image-icons.html'>
+
+<dom-module id='polyrhythm-image-input'>
+  <style>
+    .file-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      font-size: 999px;
+      text-align: right;
+      filter: alpha(opacity=0);
+      opacity: 0;
+      outline: none;
+      background: white;
+      cursor: pointer;
+      display: block;
+      z-index: 1;
+    }
+
+    .image-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: block;
+      font-size: 1000%;
+      width: 1.5em;
+      height: 1em;
+      text-align: center;
+      margin: 0px auto;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+
+      border: solid 1px;
+      border-radius: 5px; 
+    }
+
+    .image-wrapper iron-icon {
+      display: block;
+      --iron-icon-width: 100%;
+      --iron-icon-height: 70%;
+    }
+
+    .image-wrapper p {
+      font-size: 10%;
+    }
+
+    .image-wrapper.has-image {
+      border: none;
+    }
+
+    .image-wrapper.has-image iron-icon, .image-wrapper.has-image p {
+      display: none;
+    }
+
+
+
+  </style>
+   
+  <template>
+    <span class='image-wrapper'>
+      <iron-icon icon="image:photo-camera"></iron-icon>
+      <p>{{ message }}</p>
+
+      <input name="{{ name }}" type='file' class='file-input'>
+    </span>
+  </template>
+</dom-module>
+
+<script>
+  (function(){
+      Polymer({
+      is: "polyrhythm-image-input",
+      
+      properties: {
+        _value: { type: String, value: "" },
+        _name: { type: String, value: "" },
+        _display: { type: String, value: "", notify: true},
+        message: { type: String, value: "Click here to upload an image" }
+      },
+
+      ready: function(){
+        var real_input = Polymer.dom(this.root).querySelector(".file-input"),
+            wrapper = Polymer.dom(this.root).querySelector(".image-wrapper");
+
+        real_input.addEventListener("change", function(){
+          if (real_input.files[0] !== void(0)){
+            this._display = real_input.files[0].name; 
+            wrapper.classList.add("has-image");
+
+            var reader = new FileReader();
+            reader.onloadend = function(){
+              wrapper.style.backgroundImage = "url(" + reader.result + ")";
+            }
+
+            reader.readAsDataURL(real_input.files[0]);
+          } else {
+            this._display = "";
+            wrapper.classList.remove("has-image");
+            wrapper.style.backgroundImage = "none";
+          }
+        }.bind(this), false)
+      },
+
+      behaviors: [Polymer.IronFormElementBehavior]
+    })
+  })();
+</script>

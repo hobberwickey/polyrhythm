@@ -1,0 +1,34 @@
+<link rel='import' href='../../../components/paper-checkbox/paper-checkbox.html'>
+
+<dom-module id='polyrhythm-checkbox'>
+  <style>
+
+  </style>
+
+  <template>
+    <paper-checkbox checked="[[ _isChecked(_value) ]]" on-change="_toggle">{{ label }}</paper-checkbox>
+    <input type="hidden" name="{{ _name }}" value="{{ _value }}">
+  </template>
+</dom-module>
+
+<script>
+  (function(){
+    Polymer({
+      is: "polyrhythm-checkbox",
+      
+      properties: {
+        label: { type: String, value: "Yeah?" },
+        _value: { type: Number, value: 0, notify: true },
+        _name: { type: String, value: "" }
+      },
+
+      _toggle: function(){
+        this._value = this.$$("paper-checkbox").checked ? 1 : 0;
+      },
+
+      _isChecked: function(value){
+        return (value | 0) === 1;
+      }
+    })
+  })();
+</script>

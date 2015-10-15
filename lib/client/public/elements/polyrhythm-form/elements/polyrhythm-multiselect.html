@@ -1,0 +1,176 @@
+<link rel='import' href='../../../components/paper-input/paper-input.html'>
+<link rel='import' href='../../../components/iron-selector/iron-selector.html'>
+<link rel='import' href='../../../components/iron-icon/iron-icon.html'>
+<link rel='import' href='../../../components/iron-icons/iron-icons.html'>
+
+<dom-module id='polyrhythm-multiselect'>
+  <style>
+    :host {
+      outline: 0;
+      display: block;
+      position: relative;
+    }
+
+    .select-list {
+      position: absolute;
+      width: 100%;
+      background-color: white;
+      border: solid 1px #888;
+      margin-top: -10px;
+      z-index: 10;
+    }
+
+    .select-list > div {
+      padding: 10px 0px;
+      border-bottom: solid 1px #ccc;
+    }
+
+    .select-list > div:last-of-type{
+      border-bottom: none;
+    }
+
+    .select-list > div.iron-selected {
+      background-color: #ccf;
+    }
+
+    .select-list > div:hover, .select-list > div.hovered {
+      background-color: #eef;
+    }
+
+    iron-icon {
+      position: absolute;
+      right: 0;
+    }
+
+    paper-checkbox {
+      pointer-events: none;
+      margin-left: 10px;
+    }
+  </style>
+
+  <template>
+    <paper-input-container>
+      <label>{{ label }}</label>
+      <input class='select-input' is="iron-input" bind-value='[[ _displayValue( _value ) ]]' type='text' disabled>
+      <iron-icon icon='expand-more'></iron-icon>
+    </paper-input-container>
+    <!-- <paper-input class='select-input' label="{{ label }}" disabled></paper-input> -->
+    <!-- <iron-selector id='select_list' class='select-list' attr-for-selected='val' on-iron-select="_update" on-iron-deselect='_update' multi hidden$='{{ !opened }}'>      -->
+    <iron-selector id='select_list' class='select-list' attr-for-selected='val' multi hidden$='{{ !opened }}'>     
+      <template is="dom-repeat" items="{{ values }}">
+        <div class='select-option' val="{{ item.0 }}" on-click="_select">
+          <paper-checkbox checked="[[ _checked( index, _value) ]]" on-focus="_stop" tabIndex="-1"><span>{{ item.1 }}</span></paper-checkbox>
+          <div hidden class='multiselect-input-wrapper'>
+            <input name$="[[ _arrayName(_name) ]]" value="{{ item.0 }}" checked="[[ _checked(index, _value) ]]" type="checkbox">
+          </div>
+        </div>
+      </template>
+    </iron-selector>
+  </template>
+</dom-module>
+
+<script>
+  (function(){
+      Polymer({
+      is: "polyrhythm-multiselect",
+      
+      properties: {
+        values: { type: Array, value: function(){ return []} },
+        label: { type: String, value: "" },
+        opened: { type: Boolean, value: false },
+        _name: { type: String, value: "", notify: true },
+        _value: { type: Array, value: function(){ return [] }, notify: true }
+      },
+
+      _index: null,
+
+      ready: function(){
+        this.tabIndex = 1;
+        this.addEventListener("focus", function(){
+          this.opened = true;
+        }.bind(this), false);
+
+        this.addEventListener("blur", function(){
+          this.opened = false;
+        }.bind(this), false);   
+
+        this.addEventListener("keydown", function(e){
+          var selector = this.$.select_list;
+          if (e.keyCode === 38){
+            if (index === null){
+              this._index = this.values.length - 1;
+            } else {
+              this._index = index > 0 ? index - 1 : this.values.length - 1;
+            }
+
+            this._setHover();
+          } else if (e.keyCode === 40){
+            if (index === null){
+              index = 0;
+            } else {
+              index = index < this.values.length - 1 ? index + 1 : 0;
+            }
+
+            this._setHover();
+          } else if (e.keyCode === 13){
+            Polymer.dom(this.root).querySelector("#select_list").select(this.values[index][0]);
+          }
+        }.bind(this), true); 
+      },
+
+      _stop: function(e){
+        e.preventDefault();
+        this.focus();
+      },
+
+      _select: function(e){
+        var selector = Polymer.dom(this.root).querySelector("#select_list")
+            val = this.values[selector.items.indexOf(e.target)][0],
+            index = this._value.indexOf(val);
+
+        if (index === -1){
+          this.push("_value", val);
+        } else {
+          this.splice("_value", index, 1);
+        }
+
+        this.set("_value", JSON.parse(JSON.stringify(this._value)));
+      },
+
+      _displayValue: function(value){
+        checked = [];
+        for (var i=0; i<this.values.length; i++){
+          if (this._value.indexOf(this.values[i][0]) !== -1){
+            checked.push(this.values[i][1]);
+          } 
+        }
+
+        return checked.join(", ");
+      },
+
+      _checked: function(index, values){
+        if (!values) return false;
+        return values.indexOf(this.values[index][0]) !== -1;
+      },
+
+      _arrayName: function(name){
+        return name + "[]";
+      },
+
+      _setHover: function(){
+        var items = Polymer.dom(this.root).querySelector("#select_list").items
+        for (var i=0; i<items.length; i++){
+          items[i].classList.remove("hovered");
+        }  
+
+        items[this._index].classList.add("hovered");
+      },
+
+      close: function(){
+        this.blur();
+      },
+
+      behaviors: []
+    })
+  })();
+</script>

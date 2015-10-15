@@ -1,0 +1,29 @@
+<link rel='import' href='../../../components/paper-input/paper-input-container.html'>
+<link rel='import' href='../../../components/iron-autogrow-textarea/iron-autogrow-textarea.html'>
+
+<dom-module id='polyrhythm-textarea'>
+  <style>
+
+  </style>
+
+  <template>
+    <paper-input-container _input-selector="iron-autogrow-textarea">
+      <label>{{ label }}</label>
+      <iron-autogrow-textarea name$="{{ _name }}" bind-value="{{ _value }}"></iron-autogrow-textarea>
+    </paper-input-container>
+  </template>
+</dom-module>
+
+<script>
+  (function(){
+      Polymer({
+      is: "polyrhythm-textarea",
+      
+      properties: {
+        label: { type: String, value: "" },
+        _value: { type: String, value: "", notify: true },
+        _name: { type: String }
+      }
+    })
+  })();
+</script>

@@ -1,0 +1,70 @@
+<link rel='import' href='../../../components/paper-input/paper-input-container.html'>
+
+<dom-module id='polyrhythm-file-input'>
+  <style>
+    .file-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      font-size: 999px;
+      text-align: right;
+      filter: alpha(opacity=0);
+      opacity: 0;
+      outline: none;
+      background: white;
+      cursor: pointer;
+      display: block;
+      z-index: 1;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: block;
+    }
+  </style>
+  <!-- 
+    var wrapper = this.createWithAttributes("span", { "class": "btn-file-upload" }),
+        decorator = this.createWithAttributes("gc-input-decorator", { "class": "file-decorator", label: this.capitalize(structure.label || key.replace(/_/g, " ")), floatingLabel: structure.options.floatingLabel }),
+        textInput = this.createWithAttributes("input", { type: "text", "class": "file-dummy" }),
+        input = this.createWithAttributes("input", { type: "file", name: this.updateFieldScope(structure, key, scope), required: structure.required || false });
+  -->    
+  <template>
+    <span class='file-input-wrapper'>
+      <paper-input-container>
+        <label>{{ label }}</label>
+        <input class='file-input-display' is="iron-input" type='text' bind-value="{{ _display }}" >
+      </paper-input-container>
+
+      <input name="{{ name }}" type='file' class='file-input'>
+    </span>
+  </template>
+</dom-module>
+
+<script>
+  (function(){
+      Polymer({
+      is: "polyrhythm-file-input",
+      
+      properties: {
+        _value: { type: String, value: "", notify: true },
+        _name: { type: String, value: "" },
+        _display: { type: String, value: "", notify: true}
+      },
+
+      ready: function(){
+        var real_input = Polymer.dom(this.root).querySelector(".file-input");
+
+        real_input.addEventListener("change", function(){
+          if (real_input.files[0] !== void(0)){
+            this._display = real_input.files[0].name;
+          } else {
+            this._display = "";
+          }
+        }.bind(this), false)
+      }
+    })
+  })();
+</script>

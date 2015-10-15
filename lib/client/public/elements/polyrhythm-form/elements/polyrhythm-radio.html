@@ -1,0 +1,36 @@
+<link rel='import' href='../../../components/paper-radio-group/paper-radio-group.html'>
+<link rel='import' href='../../../components/paper-radio-button/paper-radio-button.html'>
+
+<dom-module id='polyrhythm-radio'>
+  <style>
+    label {
+      display: block;
+    }
+  </style>
+   
+  <template>
+    <label>{{ label }}</label>
+    <paper-radio-group selected="{{ _value }}">
+      <template is="dom-repeat" items="{{ values }}">
+        <paper-radio-button name="{{ item.0 }}">{{ item.1 }}</paper-radio-button>
+      </template>
+    </paper-radio-group>
+
+    <input type='hidden' name="{{ _name }}" value="{{ _value }}">
+  </template>
+</dom-module>
+
+<script>
+  (function(){
+    Polymer({
+      is: "polyrhythm-radio",
+      
+      properties: {
+        values: { type: Array, value: function(){return []} },
+        label: { type: String, value: "" },
+        _value: { type: String, notify: true },
+        _name: { type: String, value: "" }
+      }
+    })
+  })();
+</script>

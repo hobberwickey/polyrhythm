@@ -1,0 +1,77 @@
+<script src='pickaday.js'></script>
+<link rel='stylesheet' href='pickaday.css'>
+
+<script>
+var PolyrhythmDateTimeHelper;
+
+(function(){
+	var monthStrings = ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"],
+ 			fullMonthStrings = ["January", "February", "March", "April", "May", "June", "July", "August", "Sept", "October", "Novemember", "December"];
+
+
+	PolyrhythmDateTimeHelper = {
+	 	hourValues: [],
+	 	minuteValues: [],
+	 	yearValues: [],
+	 	
+	 	properties: {
+	 		military: { type: Boolean, value: false },
+	 		includeDate: { type: Boolean, value: true },
+	 		includeTime: { type: Boolean, value: true },
+	 		valueFormat: { type: String },
+	 		displayFormat: { type: String }
+	 	},
+
+	 	ready: function(){
+	 		
+	 	},
+
+	 	/*
+			Y - 4 digit year,
+			y - 2 digit year,
+			m - 2 digit month,
+			M - Abbreviated Month,
+			F - Full english month name,
+			D - 2 digit day,
+			H - 2 digit hour 12 hour clock,
+			h - 2 digit hour 24 hour clock,
+			N - 2 digit minutes
+			S - 2 digit seconds
+			P - The period of the date (AM/PM)
+	 	*/
+
+	 	keys: {
+			"Y": function(date){ return date.getFullYear(); },
+			"y": function(date){ return date.getFullYear().toString().substring(2) },
+			"m": function(date){ var m = date.getMonth() + 1; return m < 10 ? "0" + m : m.toString() },
+			"M": function(date){ return monthStrings[ date.getMonth() ] },
+			"F": function(date){ return fullMonthStrings[ date.getMonth() ] },
+			"D": function(date){ var d = date.getDate(); return d < 10 ? "0" + d : d },
+			"H": function(date){ var h = date.getHours(); h = h > 11 ? h - 12 : h; return h < 10 ? "0" + h : h },
+			"h": function(date){ var h = date.getHours(); return h < 10 ? "0" + h : h },
+			"N": function(date){ var m = date.getMinutes(); return m < 10 ? "0" + m : m },
+			"S": function(date){ var s = date.getSeconds(); return s < 10 ? "0" + s : s },
+			"P": function(date){ var h = date.getHours(); return h < 12 ? "AM" : "PM" },
+		},
+
+	 	parseFormat: function(date, format){
+	 		var exp = /\%/g,
+				result = "",
+				lastMatch = 0,
+				match;
+
+	 		while ((match = exp.exec(format)) !== null){
+	 			var key = format.substr(match.index + 1, 1);
+	 			result += format.substring(lastMatch, match.index);
+	 			result += this.keys[key](date);
+	 			
+	 			lastMatch = match.index + 2;
+	 		}
+
+	 		result += format.substring(lastMatch);
+
+	 		return result;
+	 	}
+ 	}
+})();
+</script>

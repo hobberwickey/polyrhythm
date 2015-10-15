@@ -1,0 +1,177 @@
+<script>
+  (function(){
+    function scopeToClass(structure, scope){
+      if (scope === null) return structure.key;
+
+      if (structure.unscoped){
+        var className = structure.key
+      } else {
+        var className = scope.replace(/\[/g, "_").replace(/\]/g, "") + "_" + structure.key;
+      }
+      return className;
+    }
+
+    function updateFieldScope(structure, scope){
+      if (scope === null) return structure.key;
+      return structure.unscoped ? structure.key : scope + "[" + structure.key + "]"
+    }
+
+    function objectMerge(obj1, obj2, copy){
+      if (copy){
+        var obj = JSON.parse(JSON.stringify(obj1));
+      } else {
+        var obj = obj1;
+      }
+
+      for (var x in obj2){
+        obj[x] = obj2[x];
+      } 
+
+      return obj;
+    }
+
+    var defaultAttributes = {
+      floatingLabel: true,
+      required: false
+    }
+
+    PolyrhythmPaperInputs = {
+      types: {
+        "hidden": { input: "input", name: "name", value: "value", default_value: "" },
+        "string": { input: "paper-input", name: "name", value: "value", default_value: "" },
+        "text": { input: "polyrhythm-textarea", name: "_name", value: "_value", default_value: "" },
+        "datetime": { input: "polyrhythm-datetime", name: "_name", value: "_value", default_value: new Date() },
+        "select": { input: "polyrhythm-select", name: "_name", value: "_value", default_value: "" },
+        "multiselect": { input: "polyrhythm-multiselect", name: "_name", value: "_value", default_value: new ObservedArray() },
+        "json": { input: "textarea", name: "name", value: "value", default_value: "" },
+        "checkbox": { input: "polyrhythm-checkbox", name: "_name", value: "_value", default_value: 0 },
+        "file": { input: "polyrhythm-file-input", name: "name", value: "value", default_value: "" },
+        "image": { input: "polyrhythm-image-input", name: "name", value: "value", default_value: "" },
+        "radio": { input: "polyrhythm-radio", name: "_name", value: "_value", default_value: new ObservedArray() }
+      },
+
+      wrapInput: function(input, fieldStructure){
+        if (fieldStructure.label !== null){
+          var wrapper = this.createWithAttributes("div", { "class": "input-wrapper" }),
+              label = this.createWithAttributes("label", { text: fieldStructure.label || this.capitalize(fieldStructure.key) });
+
+          this.adopt(wrapper, [label, input]);
+          return wrapper;
+        } else {
+          return input;
+        }
+      },
+
+      createBoundInput: function(fieldStructure, data, scope){
+        var scopeClass = scopeToClass(fieldStructure, scope),
+            attributes = fieldStructure.attributes || {};
+
+        
+
+        var type = this.types[fieldStructure.type];
+
+        attributes["class"] = attributes["class"] === void(0) ? scopeClass : scopeClass + " " + attributes["class"]; 
+        attributes[type.name] = updateFieldScope(fieldStructure, scope);
+        attributes[type.value] = data[fieldStructure.key] || fieldStructure.value || type.default_value || "";
+
+        if (fieldStructure.type === "text") console.log(type.name, attributes[type.name])
+
+        var input = this.createWithAttributes(type.input, attributes);
+            input.label = fieldStructure.label || this.capitalize(fieldStructure.key);
+        
+        var attributes = objectMerge(defaultAttributes, fieldStructure.attributes, true);
+        for (var x in attributes) input[x] = attributes[x];
+
+        data.observe(function(){
+          input[type.value] = data[fieldStructure.key]; 
+          this.fire(type.value + '-changed', {}, { node: input });
+        }.bind(this), fieldStructure.key);
+
+        input.addEventListener(type.value + "-changed", function(){
+          data[fieldStructure.key] = input[type.value]
+        }.bind(this), false)
+
+        return input;
+      },
+
+      capitalize: function(str){
+          return str.toLowerCase().replace(/_/gi, " ").replace( /\b\w/g, function (m) {
+              return m.toUpperCase();
+          });
+      },
+
+      inputs: {
+        string: function(fieldStructure, data, scope){
+          return this.createBoundInput(fieldStructure, data, scope);
+        },
+
+        text: function(fieldStructure, data, scope){
+          return this.createBoundInput(fieldStructure, data, scope)
+        },
+
+        select: function(fieldStructure, data, scope){
+          if (!fieldStructure.values) return null;
+
+          var input = this.createBoundInput(fieldStructure, data, scope);
+              input.values = fieldStructure.values;
+
+          return input;
+        },
+
+        multiselect: function(fieldStructure, data, scope){
+          if (!fieldStructure.values) return null;
+
+          var input = this.createBoundInput(fieldStructure, data, scope);
+              input.values = fieldStructure.values;
+
+          return input;
+        },
+
+        hidden: function(fieldStructure, data, scope){
+          var input = this.createBoundInput(fieldStructure, data, scope)
+              input.type = "hidden";
+
+          return input;
+        },
+
+        checkbox: function(fieldStructure, data, scope){
+          return this.createBoundInput(fieldStructure, data, scope);
+        },
+
+        radio: function(fieldStructure, data, scope){ 
+          var input = this.createBoundInput(fieldStructure, data, scope);
+              input.values = fieldStructure.values;
+
+          return input;
+        },
+
+        file: function(fieldStructure, data, scope){
+          return this.createBoundInput(fieldStructure, data, scope)              
+        },
+
+        image: function(fieldStructure, data, scope){
+          return this.createBoundInput(fieldStructure, data, scope)
+        },
+
+        datetime: function(fieldStructure, data, scope){
+          return this.createBoundInput(fieldStructure, data, scope)
+        },
+
+        json: function(fieldStructure, data, scope){
+          var jsonData = !!fieldStructure.multiple ? new ObservedArray() : new ObservedObject(),
+              input = this.createBoundInput(fieldStructure, data, scope)
+              wrapper = this.createWithAttributes("div", { "class": "json-wrapper" });
+
+          wrapper.addEventListener("value-changed", function(e){
+            data[fieldStructure.key] = JSON.stringify(jsonData);
+          }, false);
+
+          data[fieldStructure.key] = JSON.stringify(jsonData);
+          this.buildStructure(fieldStructure.structure, jsonData, wrapper, "_json_" + fieldStructure.key)
+
+          return wrapper;
+        }
+      }
+    }
+  })();
+</script>

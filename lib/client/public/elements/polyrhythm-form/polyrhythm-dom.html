@@ -1,0 +1,51 @@
+<script>
+  PolyrhythmDom = {
+    properties: {
+      expose: { type: Boolean, value: false }
+    },
+
+    ready: function(){
+      var root = this.expose ? this : this.root;
+      
+      this.dom = Polymer.dom(root);
+      this.$ = Polymer.dom(root).querySelector.bind(this);
+      this.$$ = Polymer.dom(root).querySelectorAll.bind(this);
+    },
+
+    adopt: function(parent, children){
+      var len = children.length,
+          _parent = document.createDocumentFragment();
+
+      for ( var i=0; i<len; i++){
+        _parent.appendChild(children[i]);
+      }
+
+      parent.appendChild(_parent);
+    },
+
+    createWithAttributes: function(type, attributes){
+      attributes = attributes || {};
+
+      var el = document.createElement(type)
+      if (attributes){
+        for (var x in attributes){
+          if (x === 'text'){
+            var t = document.createTextNode(attributes[x]);
+            el.appendChild(t);
+          } else if (x === "checked"){
+            if (!!attributes[x]) el.setAttribute(x, attributes[x]);
+          } else {
+            el.setAttribute(x, attributes[x]);
+          }
+        }
+      }
+
+      return el;
+    },
+
+    createInput: function(fieldStructure, data, scope){
+      console.log(this.inputs)
+      return this.inputs[fieldStructure.type].call(this, fieldStructure, data, scope);
+    }
+  }
+</script>

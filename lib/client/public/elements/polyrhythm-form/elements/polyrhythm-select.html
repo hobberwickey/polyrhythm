@@ -1,0 +1,118 @@
+<link rel='import' href='../../../components/paper-input/paper-input.html'>
+<link rel='import' href='../../../components/iron-selector/iron-selector.html'>
+<link rel='import' href='../../../components/iron-icon/iron-icon.html'>
+<link rel='import' href='../../../components/iron-icons/iron-icons.html'>
+
+<dom-module id='polyrhythm-select'>
+  <style>
+    :host {
+      outline: 0;
+      display: block;
+      position: relative;
+    }
+
+    .select-list {
+      position: absolute;
+      width: 100%;
+      background-color: white;
+      border: solid 1px #888;
+      margin-top: -10px;
+      z-index: 10;
+    }
+
+    .select-list > div {
+      padding: 10px 0px;
+      border-bottom: solid 1px #ccc;
+    }
+
+    .select-list > div:last-of-type{
+      border-bottom: none;
+    }
+
+    .select-list > div.iron-selected {
+      background-color: #ccf;
+    }
+
+    .select-list > div:hover {
+      background-color: #eef;
+    }
+
+    iron-icon {
+      position: absolute;
+      right: 0;
+    }
+  </style>
+
+  <template>
+    <paper-input-container>
+      <label>{{ label }}</label>
+      <input class='select-input' is="iron-input" bind-value='[[ _displayValue(_value) ]]' type='text' disabled>
+      <iron-icon icon='expand-more'></iron-icon>
+    </paper-input-container>
+    <!-- <paper-input class='select-input' label="{{ label }}" disabled></paper-input> -->
+    <iron-selector id='select_list' class='select-list' attr-for-selected='val' selected="{{ _value }}" hidden$='{{ !opened }}'>     
+      <template is="dom-repeat" items="{{ values }}">
+        <div class='select-option' val="{{ item.0 }}" on-click='close'>
+          </paper-checkbox><span>{{ item.1 }}</span>
+        </div>
+      </template>
+    </iron-selector>
+
+    <input type="hidden" name="{{ _name }}" value="{{ _value }}">
+  </template>
+</dom-module>
+
+<script>
+  (function(){
+      Polymer({
+      is: "polyrhythm-select",
+      
+      properties: {
+        values: { type: Array, value: function(){ return [] } },
+        _value: { type: String, value: "", notify: true },
+        _name: { type: String, value: "" },
+        label: { type: String, value: "" },
+        opened: { type: Boolean, value: false }
+      },
+
+      ready: function(){
+        this.tabIndex = 1;
+        this.addEventListener("focus", function(){
+          this.opened = true;
+        }.bind(this), false);
+
+        this.addEventListener("blur", function(){
+          this.opened = false;
+        }.bind(this), false);   
+
+        this.addEventListener("keydown", function(e){
+          var selector = this.$.select_list;
+          if (e.keyCode === 38){
+            if (!selector.selected){
+              selector.selected = this.values[this.values.length - 1][0];
+            } else {
+              selector.selectPrevious();
+            }
+          } else if (e.keyCode === 40){
+            if (!selector.selected){
+              selector.selected = this.values[0][0];
+            } else {
+              selector.selectPrevious();
+            }
+          } else if (e.keyCode === 13){
+            this.close();
+          }
+        }.bind(this), true);   
+      },
+
+      _displayValue: function(value){
+        var val = this.values.filter(function(item){ return item[0] === value})[0];
+        return !val ? "" : val[1];
+      },
+
+      close: function(){
+        this.blur();
+      }
+    })
+  })();
+</script>
