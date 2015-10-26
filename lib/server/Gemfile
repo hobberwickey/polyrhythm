@@ -4,8 +4,9 @@ gem "sinatra"
 gem "sinatra-r18n"
 gem "sinatra-partial"
 
-gem "pg" 							                  # DB
-gem "activerecord", '>= 4.2.0'  	      # ORM
-gem 'sinatra-flash' 				            # to enable flash messages
+gem "rack-proxy"
+gem "pg"                                # DB
+gem "activerecord", '>= 4.2.0'          # ORM
+gem 'sinatra-flash'                     # to enable flash messages
 gem 'sinatra-contrib', require: false   # for reloading
-gem 'dotenv'                            # environment variables
+gem 'dotenv'                           # environment variables

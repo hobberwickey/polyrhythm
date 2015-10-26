@@ -7,7 +7,7 @@ command = ARGV[0]
 if command == "scaffold"
 
 elsif command == "install_server"
-
+  Polyrhythm::Setup::create_server
 elsif command == "install_client"
 
 elsif command == "install_auth"

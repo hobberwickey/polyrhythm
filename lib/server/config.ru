@@ -1,10 +1,34 @@
-require './application'
-require 'sass/plugin/rack'
+require 'rack-proxy'
+require './services'
 
-use Rack::Session::Cookie, :secret => "THISISSUPERSECRETGUYSSERIOUSLY"
+class AppProxy < Rack::Proxy
+  def rewrite_env(env)
+    request = Rack::Request.new(env)
+    
+    first_segment, path = parse_path(request.path)
+    
+    env["HTTP_HOST"] = SERVICES[:development][:remote][first_segment]
+    env["SCRIPT_NAME"] = path 
+    env
+  end
 
-Sass::Plugin.options[:style] = :compressed
-use Sass::Plugin::Rack
+  def parse_path(path)
+    first_segment = "/#{path.split("/")[1]}"
+    new_path = "/#{path.split('/')[2..-1].join('/')}"
+    
+    return first_segment, new_path
+  end
+end
+proxy = AppProxy.new
 
-run Application.new
+service_map = {}
+SERVICES[:development][:local].each do |k, v|
+  service_map[k] = v
+end
 
+SERVICES[:development][:remote].each do |k, v|
+  service_map[k] = proxy
+end
+
+
+run Rack::URLMap.new( service_map )
