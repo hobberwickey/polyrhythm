@@ -16,13 +16,8 @@ module Polyrhythm
     end
     
     def self.init(name, path="/", opts={})
-      begin
-        require "#{@app_root}/services.rb"
-        services = SERVICES.clone
-      rescue
-        services = DEFAULT_SERVICES.clone
-      end
-
+      services = DEFAULT_SERVICES.clone
+      
       if services[:development][:local][name.to_sym].nil?  && services[:development][:remote][name.to_sym].nil?
         FileUtils::mkdir_p "#{@app_root}/#{name.downcase}"
         FileUtils::copy "#{gem_root}/lib/core/config.ru" "#{app_root}/#{name.downcase}/config.ru"
