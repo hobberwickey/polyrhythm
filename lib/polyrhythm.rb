@@ -3,6 +3,13 @@ require 'fileutils'
 
 module Polyrhythm
   class Scaffold
+    DEFAULT_SERVICES = {
+      :development => {
+        :local => {},
+        :remote => {}
+      }
+    }
+
     def self.initialize
       @app_root = Dir.pwd
       @gem_root = File.expand_path '../..', __FILE__      
@@ -11,16 +18,11 @@ module Polyrhythm
     def self.init(name, path="/", opts={})
       begin
         require "#{@app_root}/services.rb"
+        services = SERVICES.clone
       rescue
-        SERVICES = {
-          :development => {
-            :local => {},
-            :remote => {}
-          }
-        }
+        services = DEFAULT_SERVICES.clone
       end
 
-      services = SERVICES.clone
       if services[:development][:local][name.to_sym].nil?  && services[:development][:remote][name.to_sym].nil?
         FileUtils::mkdir_p "#{@app_root}/#{name.downcase}"
         FileUtils::copy "#{gem_root}/lib/core/config.ru" "#{app_root}/#{name.downcase}/config.ru"
