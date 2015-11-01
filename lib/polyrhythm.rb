@@ -9,8 +9,17 @@ module Polyrhythm
     end
     
     def self.init(name, path="/", opts={})
-      require "#{@app_root}/services.rb"
-      
+      begin
+        require "#{@app_root}/services.rb"
+      rescue
+        SERVICES = {
+          :development => {
+            :local => {},
+            :remote => {}
+          }
+        }
+      end
+
       services = SERVICES.clone
       if services[:development][:local][name.to_sym].nil?  && services[:development][:remote][name.to_sym].nil?
         FileUtils::mkdir_p "#{@app_root}/#{name.downcase}"
