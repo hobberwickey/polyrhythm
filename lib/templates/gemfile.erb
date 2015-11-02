@@ -1,9 +1,12 @@
-gem "rake"
-gem "sinatra"
-gem "sinatra-r18n"
-gem "sinatra-partial"
-gem "sinatra-contrib"
+group :<%= @name %>_development do
+  gem "rake"
+  gem "sinatra"
+  gem "sinatra-r18n"
+  gem "sinatra-partial"
+  gem "sinatra-contrib"
 
-gem "<%= @config[:db_type] %>"          # DB
-gem "activerecord", '>= 4.2.0'          # ORM
-gem 'dotenv'                            # environment variables
+  gem "<%= @config[:db_type] %>"          # DB
+  gem "activerecord", '>= 4.2.0'          # ORM
+  gem 'dotenv'                            # environment variables
+end
+

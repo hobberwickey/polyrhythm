@@ -69,7 +69,7 @@ module Polyrhythm
 
         build_from_template "#{@gem_root}/lib/templates/env.erb", "#{dir}/.env"
         build_from_template "#{@gem_root}/lib/templates/application.erb", "#{dir}/#{@name}.rb"
-        build_from_template "#{@gem_root}/lib/templates/gemfile.erb", "#{@app_root}/Gemfile"
+        build_from_template "#{@gem_root}/lib/templates/gemfile.erb", "#{@app_root}/Gemfile", 'a+'
       else 
         #error
       end
@@ -82,11 +82,11 @@ module Polyrhythm
 
     private
 
-    def build_from_template(src, dest)
+    def build_from_template(src, dest, mode='w+')
       template = File.open(src, 'r')
       parsed = ERB.new(template.read).result( binding )
 
-      File.open(dest, 'w+'){ |f| f.write ( parsed )}
+      File.open(dest, mode){ |f| f.write ( parsed )}
       template.close
     end
 

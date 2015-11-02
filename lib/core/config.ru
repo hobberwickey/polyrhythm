@@ -23,12 +23,12 @@ proxy = AppProxy.new
 
 service_map = {}
 SERVICES[:development][:local].each do |k, v|
-  service_map[k] = v
+  require_relative "./#{v}/#{v}"
+  service_map[k] = v.capitalize.constantize.new
 end
 
 SERVICES[:development][:remote].each do |k, v|
-  require_relative "./#{v}/#{v}"
-  service_map[k] = v.capitalize.constantize.new
+  service_map[k] = proxy
 end
 
 
