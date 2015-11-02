@@ -27,7 +27,8 @@ SERVICES[:development][:local].each do |k, v|
 end
 
 SERVICES[:development][:remote].each do |k, v|
-  service_map[k] = proxy
+  require_relative "./#{v}/#{v}"
+  service_map[k] = v.capitalize.constantize.new
 end
 
 

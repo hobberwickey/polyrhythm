@@ -7,7 +7,7 @@ command = ARGV[0]
 scaffold = Polyrhythm::Scaffold.new
 
 if command == "init"
-  scaffold.init ARGV[1], ARGV[2]
+  scaffold.init ARGV[1], ARGV[2] || "/"
 elsif command == "build_service"
 
 else 

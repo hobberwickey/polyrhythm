@@ -1,6 +1,7 @@
 require "polyrhythm/version"
 require 'fileutils'
 require "json"
+require 'erb'
 
 module Polyrhythm
   class Scaffold
@@ -33,13 +34,14 @@ module Polyrhythm
       @gem_root = File.expand_path '../..', __FILE__      
     end
     
-    def init(name, path='/', opts={})
+    def init(name, path, opts={})
       @name = name
       @path = path
       @config = DEFAULT_CONFIG.merge(opts)
 
       @services = DEFAULT_SERVICES.clone
       FileUtils::copy "#{@gem_root}/lib/core/config.ru", "#{@app_root}/config.ru"
+      FileUtils::copy "#{@gem_root}/lib/core/Gemfile", "#{@app_root}/Gemfile"
       
       write_services
       build_service(nil, @path, opts)
@@ -65,17 +67,9 @@ module Polyrhythm
         dir = "#{@app_root}/#{@name.downcase}"
         FileUtils.cp_r "#{@gem_root}/lib/service/.", dir
 
-        File.open("#{dir}/.env", 'w+'){ |f| f.write (
-          erb "#{@gem_root}/templates/env"
-        )}
-
-        File.open("#{dir}/Gemfile", 'w+'){ |f| f.write (
-          erb "#{@gem_root}/templates/Gemfile"
-        )}
-
-        File.open("#{dir}/application.rb", 'w+'){ |f| f.write (
-          erb "#{@gem_root}/templates/application"
-        )}
+        build_from_template "#{@gem_root}/lib/templates/env.erb", "#{dir}/.env"
+        build_from_template "#{@gem_root}/lib/templates/application.erb", "#{dir}/#{@name}.rb"
+        build_from_template "#{@gem_root}/lib/templates/gemfile.erb", "#{@app_root}/Gemfile"
       else 
         #error
       end
@@ -87,6 +81,14 @@ module Polyrhythm
     end
 
     private
+
+    def build_from_template(src, dest)
+      template = File.open(src, 'r')
+      parsed = ERB.new(template.read).result( binding )
+
+      File.open(dest, 'w+'){ |f| f.write ( parsed )}
+      template.close
+    end
 
     def write_services
       #TODO: better checks
