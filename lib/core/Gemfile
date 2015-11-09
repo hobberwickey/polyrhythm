@@ -2,4 +2,7 @@ source "https://rubygems.org"
 
 gem "rack"
 gem "rack-proxy"
+gem 'rack-cors', require: 'rack/cors' # Allow CORS
+gem 'rack-contrib'
+gem 'warden'
 

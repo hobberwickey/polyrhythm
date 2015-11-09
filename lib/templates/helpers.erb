@@ -1,4 +1,4 @@
-class Application < Sinatra::Base
+class <%= @name.capitalize %> < Sinatra::Base
   helpers do
     def current_user
       return unless session[:user_id]

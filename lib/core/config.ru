@@ -1,5 +1,28 @@
 require 'rack-proxy'
+require 'rack/contrib'
+require 'warden'
+
 require './services'
+
+use Rack::PostBodyContentTypeParser
+
+use Rack::Cors do
+  allow do
+    origins '*'
+    resource '/*', :headers => :any, :methods => [:get, :post, :put, :delete, :options]
+  end
+end
+
+#TODO: more flexible configuration
+use Warden::Manager do |config|
+  config.scope_defaults( 
+    :default,
+    store: false, 
+    strategies: [:access_token, :password], 
+    action: '/authorization/unauthenticated'
+  )
+  config.failure_app = self
+end
 
 class AppProxy < Rack::Proxy
   def rewrite_env(env)
