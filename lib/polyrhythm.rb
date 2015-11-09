@@ -3,6 +3,7 @@ require 'fileutils'
 require "json"
 require 'erb'
 require 'readline'
+require 'active_support/inflector'
 
 module Polyrhythm
   class Scaffold
@@ -104,7 +105,7 @@ module Polyrhythm
       @name = name
       @root = root || Dir.pwd
 
-      build_from_template "model.erb", "#{@root}/models/@name.downcase.singularize"
+      build_from_template "model.erb", "#{@root}/models/#{@name.downcase.singularize}.rb"
 
       create_migration("create_#{@name}", @root)
     end
@@ -113,7 +114,7 @@ module Polyrhythm
       @name = name
       @root = root || Dir.pwd
 
-      build_from_template "migration.erb", "#{@root}/db/migrate/#{Time.now.getutc}_#{@name}"
+      build_from_template "migration.erb", "#{@root}/db/migrate/#{Time.now.to_i}_#{@name}.rb"
     end
 
     def remote_service(name, opts={})
@@ -131,6 +132,7 @@ module Polyrhythm
       template = File.open("#{@gem_root}/lib/templates/#{src}", 'r')
       parsed = ERB.new(template.read).result( binding )
 
+      ensure_directory_exists(dest)
       File.open(dest, mode){ |f| f.write ( parsed )}
       template.close
     end
@@ -145,6 +147,13 @@ module Polyrhythm
         )}
       else
         
+      end
+    end
+
+    def ensure_directory_exists(dest)
+      dirname = File.dirname(dest)
+      unless File.directory?(dirname)
+        FileUtils.mkdir_p(dirname)
       end
     end
   end

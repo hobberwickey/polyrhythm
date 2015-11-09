@@ -1,41 +1,7 @@
 #!/usr/bin/env ruby
 
 require "polyrhythm"
-require 'optparse'
-
 command = ARGV[0] 
-options = {}
-
-option_parser = OptionParser.new do |opts|
-  opts.on('--db_user u', 'Database Username') do |u|
-    options[:db_user] = u
-  end
-
-  opts.on('--db_pass p', 'Database Password') do |p|
-    options[:db_pass] = p
-  end
-
-  opts.on('--db_name n', 'Database Name') do |n|
-    options[:db_name] = n
-  end
-
-  opts.on('--db_host h', 'Database Host') do |h|
-    options[:db_host] = h
-  end
-
-  opts.on('--db_port r', 'Database Port') do |r|
-    options[:db_port] = r
-  end
-
-  opts.on('--db_type t', 'Database Adapter') do |t|
-    options[:db_type] = t
-  end
-
-  opts.on('--without_cors', "Don't allow CORS") do 
-    options[:db_host] = true
-  end
-end
-option_parser.parse!
 
 scaffold = Polyrhythm::Scaffold.new
 
@@ -43,6 +9,12 @@ if command == "init"
   scaffold.init
 elsif command == 'build_service'
   scaffold.build_service
+elsif command == 'build_auth'
+  scaffold.build_auth
+elsif command == 'create_model'
+  scaffold.create_model ARGV[1]
+elsif command == 'create_migration'
+  scaffold.create_migration ARGV[1]
 else 
   throw "Command Not Recognized"
 end
