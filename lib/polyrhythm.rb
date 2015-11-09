@@ -65,7 +65,7 @@ module Polyrhythm
     end
 
     def build_service
-      if not (defined? @name && defined? @path)
+      if not defined? @name and not defined? @path
         @name = input("Service name? ")
         @path = input("Service path? ")
       end
