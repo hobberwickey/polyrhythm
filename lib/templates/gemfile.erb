@@ -5,7 +5,7 @@ group :<%= @name %>_development do
   gem "sinatra-partial"
   gem "sinatra-contrib"
 
-  gem "<%= @config[:db_type] %>"          # DB
+  gem "<%= @db_adapter %>"                # DB
   gem "activerecord", '>= 4.2.0'          # ORM
   gem 'dotenv'                            # environment variables
 end

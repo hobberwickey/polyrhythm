@@ -45,11 +45,6 @@ module Polyrhythm
       @app_root = Dir.pwd
       @gem_root = File.expand_path '../..', __FILE__      
     end
-    
-    def input(prompt="", newline=false)
-      prompt += "\n" if newline
-      Readline.readline(prompt, true).squeeze(" ").strip
-    end
 
     def init
       @services = DEFAULT_SERVICES.clone
@@ -88,14 +83,14 @@ module Polyrhythm
       dir = "#{@app_root}/#{@name.downcase}"
       FileUtils.cp_r "#{@gem_root}/lib/service/.", dir
 
-      build_from_template "#{@gem_root}/lib/templates/env.erb", "#{dir}/.env"
-      build_from_template "#{@gem_root}/lib/templates/application.erb", "#{dir}/#{@name}.rb"
-      build_from_template "#{@gem_root}/lib/templates/helpers.erb", "#{@app_root}/lib/helpers.rb"
-      build_from_template "#{@gem_root}/lib/templates/gemfile.erb", "#{@app_root}/Gemfile", 'a+'
+      build_from_template "env.erb", "#{dir}/.env"
+      build_from_template "application.erb", "#{dir}/#{@name}.rb"
+      build_from_template "helpers.erb", "#{dir}/lib/helpers.rb"
+      build_from_template "gemfile.erb", "#{@app_root}/Gemfile", 'a+'
       
       #TODO: move into a gem
-      build_from_template "#{@gem_root}/lib/templates/siren.erb", "#{@app_root}/lib/api/siren.rb"
-      build_from_template "#{@gem_root}/lib/templates/api.erb", "#{@app_root}/lib/api/api.rb"
+      build_from_template "siren.erb", "#{dir}/lib/api/siren.rb"
+      build_from_template "api.erb", "#{dir}/lib/api/api.rb"
     end
 
     def build_auth
@@ -105,47 +100,21 @@ module Polyrhythm
       build_service
     end
 
-    # def _init(name, path, opts={})
-    #   @name = name
-    #   @path = path
-    #   @config = DEFAULT_CONFIG.merge(opts)
+    def create_model(name, root=nil)
+      @name = name
+      @root = root || Dir.pwd
 
-    #   @services = DEFAULT_SERVICES.clone
-    #   FileUtils::copy "#{@gem_root}/lib/core/config.ru", "#{@app_root}/config.ru"
-    #   FileUtils::copy "#{@gem_root}/lib/core/Gemfile", "#{@app_root}/Gemfile"
-      
-    #   write_services
-    #   build_service(nil, @path, opts)
-    # end
-    
-    # def _build_service(name, path, opts={})
-    #   unless defined? @name 
-    #     require "#{@app_root}/services"
+      build_from_template "model.erb", "#{@root}/models/@name.downcase.singularize"
 
-    #     @name = name
-    #     @config = DEFAULT_CONFIG.merge(opts)
-    #     @services = SERVICES
-    #     write_services
-    #   end
+      create_migration("create_#{@name}", @root)
+    end
 
-    #   unless path.nil?
-    #     @path = path
-    #   else
-    #     #error
-    #   end
+    def create_migration(name, root=nil)
+      @name = name
+      @root = root || Dir.pwd
 
-    #   if defined? @name 
-    #     dir = "#{@app_root}/#{@name.downcase}"
-    #     FileUtils.cp_r "#{@gem_root}/lib/service/.", dir
-
-    #     build_from_template "#{@gem_root}/lib/templates/env.erb", "#{dir}/.env"
-    #     build_from_template "#{@gem_root}/lib/templates/application.erb", "#{dir}/#{@name}.rb"
-    #     build_from_template "#{@gem_root}/lib/templates/gemfile.erb", "#{@app_root}/Gemfile", 'a+'
-    #   else 
-    #     #error
-    #   end
-
-    # end
+      build_from_template "migration.erb", "#{@root}/db/migrate/#{Time.now.getutc}_#{@name}"
+    end
 
     def remote_service(name, opts={})
 
@@ -153,8 +122,13 @@ module Polyrhythm
 
     private
 
+    def input(prompt="", newline=false)
+      prompt += "\n" if newline
+      Readline.readline(prompt, true).squeeze(" ").strip
+    end
+
     def build_from_template(src, dest, mode='w+')
-      template = File.open(src, 'r')
+      template = File.open("#{@gem_root}/lib/templates/#{src}", 'r')
       parsed = ERB.new(template.read).result( binding )
 
       File.open(dest, mode){ |f| f.write ( parsed )}
