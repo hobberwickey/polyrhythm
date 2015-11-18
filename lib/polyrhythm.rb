@@ -48,16 +48,17 @@ module Polyrhythm
     end
 
     def init
-      @services = DEFAULT_SERVICES.clone
+      @config = JSON.parse( File.read("./core/config.json"), {:symbolize_names => true})
 
       FileUtils::copy "#{@gem_root}/lib/core/config.ru", "#{@app_root}/config.ru"
       FileUtils::copy "#{@gem_root}/lib/core/Gemfile", "#{@app_root}/Gemfile"
       
-      #write_services
-      
-      # TODO: error checking
-      build_service
-      build_auth if input("Would you like to install the authorization service now? (y/n)") == "y"
+      if input("Would you like to install the authorization service now? (y/n)") == "y"
+        build_auth
+      else
+        #TODO: See if another auth service should be used
+        write_config
+      end
     end
 
     def build_service
@@ -95,10 +96,7 @@ module Polyrhythm
     end
 
     def build_auth
-      @name = "authorization"
-      @path = "/authorization"
-
-      build_service
+      
     end
 
     def create_model(name, root=nil)
@@ -147,6 +145,12 @@ module Polyrhythm
         )}
       else
         
+      end
+    end
+
+    def write_config
+      File.open("@app_root/config.json","w") do |f|
+        f.write( JSON.pretty_generate(@config) )
       end
     end
 

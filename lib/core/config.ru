@@ -1,6 +1,6 @@
 require 'rack-proxy'
 require 'rack/contrib'
-require 'warden'
+require 'rack_authorization'
 
 require './services'
 

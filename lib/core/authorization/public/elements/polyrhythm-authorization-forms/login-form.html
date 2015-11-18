@@ -1,0 +1,32 @@
+<link rel='import' href='../../bower/polymer/polymer.html' />
+<link rel='import' href='../../bower/polyrhythm-forms/polyrhythm-paper-form.html' />
+
+<dom-module id='login-form'>
+  <template></template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "login-form",
+      
+    properties: {
+      method: { type: String, value: "POST" },
+      action: { type: String, value: "/authorization/login" },
+      scope: { type: String, value: "user" },
+      xhr: { type: Boolean, value: true },
+      structure: { type: Object, value: new ObservedArray([
+          { key: "username", type: "string" },
+          { key: "password", type: "password" }
+        ])
+      }
+    },
+
+    handleXhrCallback: function(resp){
+      if (resp.token){
+        createCookie('token', resp.token, 7);
+      }
+    },
+
+    behaviors: [PolyrhythmDom, PolyrhythmPaperInputs, PolyrhythmPaperComponents, PolyrhythmCore]
+  })
+</script>
