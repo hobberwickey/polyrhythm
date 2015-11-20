@@ -6,3 +6,15 @@ gem 'rack-cors', require: 'rack/cors' # Allow CORS
 gem 'rack-contrib'
 gem 'warden'
 
+gem "pg"
+
+gem "rake"
+gem "sinatra"
+gem "sinatra-r18n"
+gem "sinatra-partial"
+gem "sinatra-contrib"
+
+gem "activerecord", '>= 4.2.0'          # ORM
+gem 'dotenv'                            # environment variables
+
+

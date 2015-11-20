@@ -2,7 +2,6 @@
   "authorization": {
     "ignore": false,
     "name": "authorization",
-    "path": "/authorization",
     "require_username": true,
     "require_email": false,
     "database": {
@@ -11,18 +10,25 @@
       "password": "",
       "adapter": "pg",
       "host": "localhost",
-      "port": "5432"
+      "port": "5432",
+      "url": ""
     }
   },
   "services": {
     "development": {
       "local": {
 
+      },
+      "remote": {
+        
       }
     },
     "production": {
-      "remote": {
+      "local": {
         
+      },
+      "remote": {
+
       }
     }
   }
