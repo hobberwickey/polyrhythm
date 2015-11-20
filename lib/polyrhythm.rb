@@ -62,9 +62,9 @@ module Polyrhythm
 
       root_db = {
         :adapter => "pg", #input("Root service database adpater (default 'pg') ")
-        :user_name => input("Database user name"),
-        :password => input("Database password"),
-        :name => input("Database name")
+        :user_name => input("Database user "),
+        :password => input("Database password "),
+        :name => input("Database name ")
       }
 
       build_service("application", "/", root_db)
@@ -73,8 +73,10 @@ module Polyrhythm
       puts ""
 
       if input("Would you like to install the authorization service now? (y/n) ") == "y"
+        puts ""
         build_auth
       else
+        puts ""
         #TODO: See if another auth service should be used
         write_config
       end
@@ -135,18 +137,19 @@ module Polyrhythm
     def build_auth
       require "active_record"
 
-      FileUtils.cp_r "#{@gem_root}/authorization", "#{@app_root}/authorization"
+      FileUtils.cp_r "#{@gem_root}/lib/authorization", "#{@app_root}/authorization"
 
       @config[:authorization][:name] = input("What would you like your authorization service to be named? (default: authorization) ")
-      @config[:authorization][:require_username] = input("Would you like to require a username for authorization? y/n" ) == "y" ? true : false
-      @config[:authorization][:require_email] = input("Would you like to require an email for authorization? y/n" ) == "y" ? true : false
+      @config[:authorization][:require_username] = input("Would you like to require a username for authorization? y/n " ) == "y" ? true : false
+      @config[:authorization][:require_email] = input("Would you like to require an email for authorization? y/n " ) == "y" ? true : false
       puts "Database configuration:"
-      
+      puts ""
+
       db_settings = @config[:authorization][:database]
       db_settings[:adapter] = "pg" #TODO: for now
-      db_settings[:username] = input("Database username?" ) 
-      db_settings[:password] = input("Database password?" ) 
-      db_settings[:name] = input("Database name?" ) 
+      db_settings[:username] = input("Database user? " ) 
+      db_settings[:password] = input("Database password? " ) 
+      db_settings[:name] = input("Database name? " ) 
 
       db_settings[:url] = "#{ DEFAULT_CONFIG[:db_roots][db_settings[:adapter].to_sym] }://#{ db_settings[:username] }#{ db_settings[:password] != '' ? '' : ':' }#{ db_settings[:password] }@localhost:#{ DEFAULT_CONFIG[:db_ports][db_settings[:adapter].to_sym] }/#{ db_settings[:name] }"
       
