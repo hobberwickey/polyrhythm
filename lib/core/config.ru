@@ -15,7 +15,6 @@ class Polyrhythm
     user = request.env['warden'].user  
     
     unless user.blank?
-      puts "ROLES: #{roles}, USER ROLES: #{ user.roles.pluck(:name) }"
       return (roles & user.roles.pluck(:name)).length > 0
     else 
       return false

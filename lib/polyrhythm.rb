@@ -57,6 +57,7 @@ module Polyrhythm
       FileUtils::copy "#{@gem_root}/lib/core/config.ru", "#{@app_root}/config.ru"
       FileUtils::copy "#{@gem_root}/lib/core/Gemfile", "#{@app_root}/Gemfile"
       
+      puts ""
       puts "Building root service"
       puts ""
 
@@ -86,12 +87,13 @@ module Polyrhythm
       @name = name
       @path = path
       @db = db_config
-
+      @db_url = "#{ DEFAULT_CONFIG[:db_roots][@db[:adapter].to_sym] }://#{ @db[:username] }#{ @db[:password] != '' ? '' : ':' }#{ @db[:password] }@localhost:#{ DEFAULT_CONFIG[:db_ports][@db[:adapter].to_sym] }/#{ @db[:name] }"
+      
       dir = "#{@app_root}/#{@name.downcase}"
       FileUtils.cp_r "#{@gem_root}/lib/service/.", dir
 
-      build_from_template "env.erb", "#{dir}/.env"
-      build_from_template "application.erb", "#{dir}/#{@name}.rb"
+      build_from_template "config.rb.erb", "#{dir}/config.rb"
+      build_from_template "application_template.erb", "#{dir}/#{@name}.rb"
       build_from_template "helpers.erb", "#{dir}/lib/helpers.rb"
       build_from_template "gemfile.erb", "#{@app_root}/Gemfile", 'a+'
       
@@ -106,7 +108,7 @@ module Polyrhythm
     def build_auth
       require "active_record"
 
-      @config[:authorization][:name] = ask("What would you like your authorization service to be named? (default: authorization):  ")
+      @config[:authorization][:name] = "authorization" #ask("What would you like your authorization service to be named? (default: authorization):  ")
       @config[:authorization][:require_username] = ask("Would you like to require a username for authorization? y/n  " ) == "y" ? true : false
       @config[:authorization][:require_email] = ask("Would you like to require an email for authorization? y/n  " ) == "y" ? true : false
       
@@ -122,7 +124,7 @@ module Polyrhythm
       db_settings[:name] = ask("Database name?  " ) 
 
       @db_url = "#{ DEFAULT_CONFIG[:db_roots][db_settings[:adapter].to_sym] }://#{ db_settings[:username] }#{ db_settings[:password] != '' ? '' : ':' }#{ db_settings[:password] }@localhost:#{ DEFAULT_CONFIG[:db_ports][db_settings[:adapter].to_sym] }/#{ db_settings[:name] }"
-      build_from_template "config.rb", "#{@app_root}/#{@config[:authorization][:name].downcase}/config.rb"
+      build_from_template "config.rb.erb", "#{@app_root}/#{@config[:authorization][:name].downcase}/config.rb"
       
       if input("Setup authorization DB now? Warning destructive behavior! y/n ") == "y"
         ActiveRecord::Base.establish_connection(@db_url)
