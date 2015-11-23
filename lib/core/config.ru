@@ -1,8 +1,27 @@
 require 'rack-proxy'
+require 'rack/cors'
 require 'rack/contrib'
-require 'rack_authorization'
+require 'json'
+require 'warden'
 
-require './services'
+CONFIG = JSON.parse( File.read("./config.json"), {:symbolize_names => true})
+SERVICES = CONFIG[:services]
+
+$service_map = {}
+
+class Polyrhythm
+  def self.auth(request, roles=[])
+    request.env['warden'].authenticate!(:access_token)
+    user = request.env['warden'].user  
+    
+    unless user.blank?
+      puts "ROLES: #{roles}, USER ROLES: #{ user.roles.pluck(:name) }"
+      return (roles & user.roles.pluck(:name)).length > 0
+    else 
+      return false
+    end
+  end
+end
 
 use Rack::PostBodyContentTypeParser
 
@@ -19,7 +38,7 @@ use Warden::Manager do |config|
     :default,
     store: false, 
     strategies: [:access_token, :password], 
-    action: '/authorization/unauthenticated'
+    action: "#{CONFIG[:authorization][:name]}/unauthenticated"
   )
   config.failure_app = self
 end
@@ -44,15 +63,14 @@ class AppProxy < Rack::Proxy
 end
 proxy = AppProxy.new
 
-service_map = {}
 SERVICES[:development][:local].each do |k, v|
   require_relative "./#{v}/#{v}"
-  service_map[k] = v.capitalize.constantize.new
+  $service_map[k.to_s] = v.capitalize.constantize.new
 end
 
 SERVICES[:development][:remote].each do |k, v|
-  service_map[k] = proxy
+  $service_map[k] = proxy
 end
 
 
-run Rack::URLMap.new( service_map )
+run Rack::URLMap.new( $service_map )

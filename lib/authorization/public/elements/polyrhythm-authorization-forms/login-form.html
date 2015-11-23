@@ -21,10 +21,14 @@
       }
     },
 
-    handleXhrCallback: function(resp){
+    xhrSuccess: function(resp, status){
       if (resp.token){
-        createCookie('token', resp.token, 7);
+        this.createCookie('token', resp.token, 7);
       }
+    },
+
+    xhrFailure: function(resp, status){
+      
     },
 
     behaviors: [PolyrhythmDom, PolyrhythmPaperInputs, PolyrhythmPaperComponents, PolyrhythmCore]

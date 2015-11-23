@@ -6,44 +6,28 @@
 </dom-module>
 
 <script>
-  (function(){
-    function createCookie(name,value,days) {
-        if (days) {
-            var date = new Date();
-            date.setTime(date.getTime()+(days*24*60*60*1000));
-            var expires = "; expires="+date.toGMTString();
-        }
-        else var expires = "";
-        document.cookie = name+"="+value+expires+"; path=/";
-    }
+  Polymer({
+    is: "signup-form",
+      
+    properties: {
+      method: { type: String, value: "POST" },
+      action: { type: String, value: "/authorization/signup" },
+      scope: { type: String, value: "user" },
+      xhr: { type: Boolean, value: true },
+      structure: { type: Object, value: new ObservedArray([
+          { key: "username", type: "string" },
+          { key: "password", type: "password" },
+          { key: "password_confirmation", type: "password" }
+        ])
+      }
+    },
 
-    Polymer({
-      is: "signup-form",
-        
-      properties: {
-        method: { type: String, value: "POST" },
-        action: { type: String, value: "/authorization/signup" },
-        scope: { type: String, value: "user" },
-        xhr: { type: Boolean, value: true },
-        structure: { type: Object, value: new ObservedArray([
-            { key: "username", type: "string" },
-            { key: "password", type: "password" },
-            { key: "password_confirmation", type: "password" }
-          ])
-        }
-      },
+    xhrSuccess: function(resp){
+      if (resp.token){
+        this.createCookie('token', resp.token, 7);
+      }
+    },
 
-      ready: function(){
-        //TODO: validation
-      },
-
-      handleXhrCallback: function(resp){
-        if (resp.token){
-          createCookie('token', resp.token, 7);
-        }
-      },
-
-      behaviors: [PolyrhythmDom, PolyrhythmPaperInputs, PolyrhythmPaperComponents, PolyrhythmCore]
-    })
-  })();
+    behaviors: [PolyrhythmDom, PolyrhythmPaperInputs, PolyrhythmPaperComponents, PolyrhythmCore]
+  })
 </script>

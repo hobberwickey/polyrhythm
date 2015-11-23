@@ -5,7 +5,7 @@ require 'erb'
 require 'readline'
 require 'active_support/inflector'
 require "bcrypt"
-      
+require 'highline/import'
 
 module Polyrhythm
   class Scaffold
@@ -62,9 +62,9 @@ module Polyrhythm
 
       root_db = {
         :adapter => "pg", #input("Root service database adpater (default 'pg') ")
-        :user_name => input("Database user "),
-        :password => input("Database password "),
-        :name => input("Database name ")
+        :user_name => ask("Database user:  "),
+        :password => ask("Database password:  "){ |q| q.echo = "*" },
+        :name => ask("Database name:  ")
       }
 
       build_service("application", "/", root_db)
@@ -98,76 +98,47 @@ module Polyrhythm
       #TODO: move into a gem
       build_from_template "siren.erb", "#{dir}/lib/api/siren.rb"
       build_from_template "api.erb", "#{dir}/lib/api/api.rb"
-    end
 
-    def _build_service
-      if not defined? @name and not defined? @path
-        @name = input("Service name? ")
-        @path = input("Service path? ")
-      end
-      
-      #@db_adapter = ("What database adpater would you like to use? ")
-      @db_adapter = "pg"
-
-      @db_name = input("Database name? ")
-      @db_user = input("Database username? ")
-      @db_pass = input("Database password? ")
-      @config = DEFAULT_CONFIG.clone
-      
-      unless defined? @services 
-        require "#{@app_root}/services"
-        @services = SERVICES
-      end
-
-      write_services
-
-      dir = "#{@app_root}/#{@name.downcase}"
-      FileUtils.cp_r "#{@gem_root}/lib/service/.", dir
-
-      build_from_template "env.erb", "#{dir}/.env"
-      build_from_template "application.erb", "#{dir}/#{@name}.rb"
-      build_from_template "helpers.erb", "#{dir}/lib/helpers.rb"
-      build_from_template "gemfile.erb", "#{@app_root}/Gemfile", 'a+'
-      
-      #TODO: move into a gem
-      build_from_template "siren.erb", "#{dir}/lib/api/siren.rb"
-      build_from_template "api.erb", "#{dir}/lib/api/api.rb"
+      @config[:services][:development][:local][@path] = @name.downcase
+      write_config
     end
 
     def build_auth
       require "active_record"
 
-      FileUtils.cp_r "#{@gem_root}/lib/authorization", "#{@app_root}/authorization"
+      @config[:authorization][:name] = ask("What would you like your authorization service to be named? (default: authorization):  ")
+      @config[:authorization][:require_username] = ask("Would you like to require a username for authorization? y/n  " ) == "y" ? true : false
+      @config[:authorization][:require_email] = ask("Would you like to require an email for authorization? y/n  " ) == "y" ? true : false
+      
+      FileUtils.cp_r "#{@gem_root}/lib/authorization", "#{@app_root}/#{@config[:authorization][:name].downcase}"
 
-      @config[:authorization][:name] = input("What would you like your authorization service to be named? (default: authorization) ")
-      @config[:authorization][:require_username] = input("Would you like to require a username for authorization? y/n " ) == "y" ? true : false
-      @config[:authorization][:require_email] = input("Would you like to require an email for authorization? y/n " ) == "y" ? true : false
       puts "Database configuration:"
       puts ""
 
       db_settings = @config[:authorization][:database]
       db_settings[:adapter] = "pg" #TODO: for now
-      db_settings[:username] = input("Database user? " ) 
-      db_settings[:password] = input("Database password? " ) 
-      db_settings[:name] = input("Database name? " ) 
+      db_settings[:username] = ask("Database user?  " ) 
+      db_settings[:password] = ask("Database password?  " ){ |q| q.echo = "*" } 
+      db_settings[:name] = ask("Database name?  " ) 
 
-      db_settings[:url] = "#{ DEFAULT_CONFIG[:db_roots][db_settings[:adapter].to_sym] }://#{ db_settings[:username] }#{ db_settings[:password] != '' ? '' : ':' }#{ db_settings[:password] }@localhost:#{ DEFAULT_CONFIG[:db_ports][db_settings[:adapter].to_sym] }/#{ db_settings[:name] }"
+      @db_url = "#{ DEFAULT_CONFIG[:db_roots][db_settings[:adapter].to_sym] }://#{ db_settings[:username] }#{ db_settings[:password] != '' ? '' : ':' }#{ db_settings[:password] }@localhost:#{ DEFAULT_CONFIG[:db_ports][db_settings[:adapter].to_sym] }/#{ db_settings[:name] }"
+      build_from_template "config.rb", "#{@app_root}/#{@config[:authorization][:name].downcase}/config.rb"
       
       if input("Setup authorization DB now? Warning destructive behavior! y/n ") == "y"
-        ActiveRecord::Base.establish_connection(db_settings[:url])
+        ActiveRecord::Base.establish_connection(@db_url)
         ActiveRecord::Base.connection.execute("
           DROP TABLE IF EXISTS clients, user_roles, users, roles, access_tokens CASCADE;
 
           CREATE TABLE users(
             id serial PRIMARY KEY,
-            #{ @config[:authorization][:require_username] ? 'username CHAR(255) NOT NULL,' : ''}
-            #{ @config[:authorization][:require_email] ? 'email CHAR(255) NOT NULL,' : ''}
-            password_digest CHAR(72) NOT NULL
+            #{ @config[:authorization][:require_username] ? 'username character varying NOT NULL,' : ''}
+            #{ @config[:authorization][:require_email] ? 'email character varying NOT NULL,' : ''}
+            password_digest character varying NOT NULL
           );
 
           CREATE TABLE roles(
             id serial PRIMARY KEY,
-            name CHAR(255) NOT NULL
+            name character varying NOT NULL
           );
 
           CREATE TABLE user_roles(
@@ -178,15 +149,15 @@ module Polyrhythm
 
           CREATE TABLE clients(
             id serial PRIMARY KEY,
-            name CHAR(255) NOT NULL,
-            public_key CHAR(255) NOT NULL,
-            private_key CHAR(255) NOT NULL
+            name character varying NOT NULL,
+            public_key character varying NOT NULL,
+            private_key character varying NOT NULL
           );
           
           CREATE TABLE access_tokens(
             id serial PRIMARY KEY,
             user_id INTEGER NOT NULL,
-            token CHAR(255) NOT NULL
+            token character varying NOT NULL
           );
           
           ALTER TABLE user_roles ADD FOREIGN KEY (user_id) REFERENCES users;
@@ -207,22 +178,28 @@ module Polyrhythm
 
           if @config[:authorization][:require_username]
             admin_fields << "username"
-            admin_creds << input("Username? ")
+            admin_creds << ask("Username?  ")
           end
 
           if @config[:authorization][:require_email]
             admin_fields << "email"
-            admin_creds << input("Email? ")
+            admin_creds << ask("Email?  ")
           end
 
           admin_fields << "password_digest"
-          admin_creds << Password.create( input("Password? ") )
+          admin_creds << Password.create( ask("Password?  "){ |q| q.echo = "*" } )
         
-          ActiveRecord::Base.connection.execute("
-            INSERT INTO users(#{admin_fields.join( "," )}) VALUES('#{ admin_creds.join( "','" )}')
+          user = ActiveRecord::Base.connection.execute("
+            INSERT INTO users(#{admin_fields.join( "," )}) VALUES('#{ admin_creds.join( "','" )}') RETURNING id
           ")
+
+          ActiveRecord::Base.connection.execute("
+            INSERT INTO user_roles (user_id, role_id) VALUES( '#{user[0]['id']}', (SELECT id FROM roles AS r WHERE r.name = 'admin') )
+          ")
+
         end
 
+        @config[:services][:development][:local]["/#{@config[:authorization][:name].downcase}"] = @config[:authorization][:name].downcase
         write_config
       else
         puts "You will need to manually set up your auth DB"

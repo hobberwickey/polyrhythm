@@ -9,10 +9,6 @@ require "sinatra/cookies"
 require "json"
 require "yaml"
 
-require 'dotenv'
-
-Dotenv.load!("./<%= @name.downcase %>/.env")
-
 Bundler.require :default, "<%= @name.downcase %>_#{(ENV["RACK_ENV"] || "development")}".to_sym
 ActiveRecord::Base.raise_in_transactional_callbacks = true
 ActiveRecord::Base.establish_connection(ENV['DATABASE_URL'])
@@ -20,6 +16,37 @@ ActiveRecord::Base.establish_connection(ENV['DATABASE_URL'])
 Dir[File.dirname(__FILE__) + "/models/*.rb"].each { |file| require file }
 
 class <%= @name.capitalize %> < Sinatra::Base  
+  helpers Sinatra::Cookies
+
+  get "/" do
+    erb :index
+  end
+end
+
+Dir.chdir(File.dirname(__FILE__) + "/lib/") { Dir.glob("**/*.rb").map {|path| require File.expand_path(path) } }
+
+require "rubygems"
+require "bundler"
+
+require "sinatra/base"
+require "sinatra/json"
+require "sinatra/cookies"
+
+require "json"
+require "yaml"
+
+require 'warden'
+
+class <%= @name.capitalize %> < Sinatra::Base  
+  require_relative "./config"
+  require "active_record"
+
+  Bundler.require :default, "application_#{(ENV["RACK_ENV"] || "development")}".to_sym
+  ActiveRecord::Base.raise_in_transactional_callbacks = true
+  ActiveRecord::Base.establish_connection(APPLICATION_CONFIG[:db_url])
+
+  Dir[File.dirname(__FILE__) + "/models/*.rb"].each { |file| require file }
+
   helpers Sinatra::Cookies
 
   get "/" do

@@ -1,8 +1,9 @@
 require 'active_record'
+require_relative "../config"
 
 namespace :db do
   task(:environment) do
-    ActiveRecord::Base.establish_connection ENV['DATABASE_URL']
+    ActiveRecord::Base.establish_connection CONFIG[:db_url]
   end
 
   desc 'Migrates the schema (options: VERSION=x, VERBOSE=false)'

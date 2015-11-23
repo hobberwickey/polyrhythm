@@ -1,6 +1,5 @@
 require "rubygems"
 require "bundler"
-require "active_record"
 
 require "sinatra/base"
 require "sinatra/json"
@@ -9,19 +8,23 @@ require "sinatra/cookies"
 require "json"
 require "yaml"
 
-require 'dotenv'
 require 'warden'
 
-Dotenv.load!("./authorization/.env")
-
-Bundler.require :default, "authorization_#{(ENV["RACK_ENV"] || "development")}".to_sym
-ActiveRecord::Base.raise_in_transactional_callbacks = true
-ActiveRecord::Base.establish_connection(ENV['DATABASE_URL'])
-
-Dir[File.dirname(__FILE__) + "/models/*.rb"].each { |file| require file }
-
 class Authorization < Sinatra::Base  
+  require_relative "./config"
+  require "active_record"
+
+  Bundler.require :default, "authorization_#{(ENV["RACK_ENV"] || "development")}".to_sym
+  ActiveRecord::Base.raise_in_transactional_callbacks = true
+  ActiveRecord::Base.establish_connection(AUTHORIZATION_CONFIG[:db_url])
+
+  Dir[File.dirname(__FILE__) + "/models/*.rb"].each { |file| require file }
+
   helpers Sinatra::Cookies
+
+  get "/" do
+    erb :index
+  end
 
   post "/remote_login" do
     env['warden'].authenticate!(:remote_password)
@@ -36,8 +39,19 @@ class Authorization < Sinatra::Base
   end
 
   post "/login" do
-    puts "WATCHING YOU!!"
     env['warden'].authenticate!(:password)
+
+
+    new_token = SecureRandom.hex(64)
+    access_token = AccessToken.where( :user_id => env['warden'].user.id ).first
+    if access_token
+      access_token.update_attribute( :token, new_token)
+    else 
+      AccessToken.create(:user_id => env['warden'].user.id, :token => new_token)
+    end
+
+    status 200
+    return {token: new_token}.to_json
   end
 
   post "/logout" do
@@ -57,8 +71,40 @@ class Authorization < Sinatra::Base
     end
   end
 
+  post "/authorize" do
+    if env["warden"].authenticate?(:access_token)
+      return env["warden"].user
+    else
+      return nil
+    end
+  end
+
+  post "/remote_authorize" do
+    def auth
+      if request.env["HTTP_AUTHORIZATION"].present? and request.env["HTTP_CREDENTIALS"].present?
+        if env["warden"].authenticate?(:access_token)
+          #TODO: should do something with provisionally logged in users
+          @current_user = env["warden"].user
+        else
+          @current_user = nil
+        end
+      else
+        if request.env["HTTP_DEVICE_ID"].present?
+          if env["warden"].authenticate?(:device_id)
+            @current_user = env["warden"].user
+          else
+            @current_user = nil
+          end
+        else 
+          @current_user = nil
+        end
+      end
+    end
+  end
+
   post "/unauthenticated" do
     status 401
+    return {:error => "Authenication Required"}.to_json
   end
 
   post "/remote_signup" do

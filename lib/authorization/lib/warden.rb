@@ -4,7 +4,7 @@ end
 
 Warden::Strategies.add(:access_token) do
   def valid?
-    request.env["HTTP_AUTHORIZATION"].present? and request.env["HTTP_CREDENTIALS"].present?
+    request.env["HTTP_CREDENTIALS"].present?
   end
 
   def authenticate!
@@ -12,7 +12,6 @@ Warden::Strategies.add(:access_token) do
     unless token.blank?
       success!(token.user)
     else 
-      puts "No Auth token"
       fail!
     end
   end
