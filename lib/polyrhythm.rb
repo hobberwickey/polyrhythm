@@ -124,6 +124,8 @@ module Polyrhythm
       db_settings[:name] = ask("Database name?  " ) 
 
       @db_url = "#{ DEFAULT_CONFIG[:db_roots][db_settings[:adapter].to_sym] }://#{ db_settings[:username] }#{ db_settings[:password] != '' ? '' : ':' }#{ db_settings[:password] }@localhost:#{ DEFAULT_CONFIG[:db_ports][db_settings[:adapter].to_sym] }/#{ db_settings[:name] }"
+      @name = @config[:authorization][:name]
+      
       build_from_template "config.rb.erb", "#{@app_root}/#{@config[:authorization][:name].downcase}/config.rb"
       
       if input("Setup authorization DB now? Warning destructive behavior! y/n ") == "y"
