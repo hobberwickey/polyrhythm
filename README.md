@@ -1,36 +1,18 @@
 # Polyrhythm
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/polyrhythm`. To experiment with that code, run `bin/console` for an interactive prompt.
+Very early alpha (read, still figuring out who everything works)
 
-TODO: Delete this and the text above, and describe your gem
+Usage so far...
 
-## Installation
+```polyrhythm init```
 
-Add this line to your application's Gemfile:
+Answer all the setup prompts and then you'll have a Sinatra instance for your application root
+and an authorization service setup (if you chose to install one).
 
-```ruby
-gem 'polyrhythm'
-```
+```bundle install```
 
-And then execute:
+To install the required gems
 
-    $ bundle
+```guard```
 
-Or install it yourself as:
-
-    $ gem install polyrhythm
-
-## Usage
-
-TODO: Write usage instructions here
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/polyrhythm. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
-
+To start up the server. 
