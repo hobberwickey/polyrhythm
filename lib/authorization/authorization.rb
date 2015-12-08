@@ -11,20 +11,17 @@ require "yaml"
 require 'warden'
 
 class Authorization < Sinatra::Base  
-  require_relative "./config"
-  require "active_record"
+  APPLICATION_CONFIG = YAML.load_file(File.dirname(__FILE__) + "/config.yml")
 
-  Bundler.require :default, "authorization_#{(ENV["RACK_ENV"] || "development")}".to_sym
-  ActiveRecord::Base.raise_in_transactional_callbacks = true
-  ActiveRecord::Base.establish_connection(AUTHORIZATION_CONFIG[:db_url])
-
-  Dir[File.dirname(__FILE__) + "/models/*.rb"].each { |file| require file }
-
-  helpers Sinatra::Cookies
-
-  get "/" do
-    erb :index
+  class ApplicationModel < ActiveRecord::Base
+    self.abstract_class = true
+    establish_connection APPLICATION_CONFIG[ENV['RACK_ENV'] || 'development']['db_url']
   end
+
+  Dir.chdir(File.dirname(__FILE__) + "/lib/") { Dir.glob("**/*.rb").map {|path| eval File.read(path) } }
+  Dir[File.dirname(__FILE__) + "/models/*.rb"].each { |path| eval File.read(path) }
+  
+  helpers Sinatra::Cookies
 
   post "/remote_login" do
     env['warden'].authenticate!(:remote_password)
@@ -202,5 +199,3 @@ class Authorization < Sinatra::Base
     return {token: new_token}.to_json
   end
 end
-
-Dir.chdir(File.dirname(__FILE__) + "/lib/") { Dir.glob("**/*.rb").map {|path| require File.expand_path(path) } }

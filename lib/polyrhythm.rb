@@ -56,6 +56,7 @@ module Polyrhythm
       
       FileUtils::copy "#{@gem_root}/lib/core/config.ru", "#{@app_root}/config.ru"
       FileUtils::copy "#{@gem_root}/lib/core/Gemfile", "#{@app_root}/Gemfile"
+      FileUtils::copy "#{@gem_root}/lib/core/Gemfile", "#{@app_root}/Guardfile"
       
       puts ""
       puts "Building root service"
@@ -92,15 +93,9 @@ module Polyrhythm
       dir = "#{@app_root}/#{@name.downcase}"
       FileUtils.cp_r "#{@gem_root}/lib/service/.", dir
 
-      build_from_template "config.rb.erb", "#{dir}/config.rb"
+      build_from_template "config.yml.erb", "#{dir}/config.yml"
       build_from_template "application_template.erb", "#{dir}/#{@name}.rb"
-      build_from_template "helpers.erb", "#{dir}/lib/helpers.rb"
-      build_from_template "gemfile.erb", "#{@app_root}/Gemfile", 'a+'
       
-      #TODO: move into a gem
-      build_from_template "siren.erb", "#{dir}/lib/api/siren.rb"
-      build_from_template "api.erb", "#{dir}/lib/api/api.rb"
-
       @config[:services][:development][:local][@path] = @name.downcase
       write_config
     end
@@ -112,9 +107,11 @@ module Polyrhythm
       @config[:authorization][:require_username] = ask("Would you like to require a username for authorization? y/n  " ) == "y" ? true : false
       @config[:authorization][:require_email] = ask("Would you like to require an email for authorization? y/n  " ) == "y" ? true : false
       
+      FileUtils.cp_r "#{@gem_root}/lib/service", "#{@app_root}/#{@config[:authorization][:name].downcase}"
       FileUtils.cp_r "#{@gem_root}/lib/authorization", "#{@app_root}/#{@config[:authorization][:name].downcase}"
 
-      puts "Database configuration:"
+      puts ""
+      puts "Authorization Service Database Configuration:"
       puts ""
 
       db_settings = @config[:authorization][:database]
@@ -126,7 +123,7 @@ module Polyrhythm
       @db_url = "#{ DEFAULT_CONFIG[:db_roots][db_settings[:adapter].to_sym] }://#{ db_settings[:username] }#{ db_settings[:password] != '' ? '' : ':' }#{ db_settings[:password] }@localhost:#{ DEFAULT_CONFIG[:db_ports][db_settings[:adapter].to_sym] }/#{ db_settings[:name] }"
       @name = @config[:authorization][:name]
       
-      build_from_template "config.rb.erb", "#{@app_root}/#{@config[:authorization][:name].downcase}/config.rb"
+      build_from_template "config.yml.erb", "#{@app_root}/#{@config[:authorization][:name].downcase}/config.yml"
       
       if input("Setup authorization DB now? Warning destructive behavior! y/n ") == "y"
         ActiveRecord::Base.establish_connection(@db_url)
@@ -172,8 +169,6 @@ module Polyrhythm
           INSERT INTO roles (name) VALUES ('admin'), ('public');
         ")
          
-
-
         puts "Authorization database configured, 'admin' and 'public' roles created"
 
         if input("Would you like to create an admin user (y/n)? ") == 'y'

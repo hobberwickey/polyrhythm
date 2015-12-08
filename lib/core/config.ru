@@ -4,23 +4,20 @@ require 'rack/contrib'
 require 'json'
 require 'warden'
 
+require 'bundler'
+require 'active_record'
+
+require_relative './lib/polyrhythm'
+require_relative './lib/api'
+require_relative './lib/siren'
+
 CONFIG = JSON.parse( File.read("./config.json"), {:symbolize_names => true})
 SERVICES = CONFIG[:services]
 
-$service_map = {}
+Bundler.require :default, (ENV["RACK_ENV"] || "development").to_sym
+ActiveRecord::Base.raise_in_transactional_callbacks = true
 
-class Polyrhythm
-  def self.auth(request, roles=[])
-    request.env['warden'].authenticate!(:access_token)
-    user = request.env['warden'].user  
-    
-    unless user.blank?
-      return (roles & user.roles.pluck(:name)).length > 0
-    else 
-      return false
-    end
-  end
-end
+$service_map = {}
 
 use Rack::PostBodyContentTypeParser
 
