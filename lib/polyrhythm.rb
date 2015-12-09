@@ -111,8 +111,8 @@ module Polyrhythm
       
 
       dir = "#{@app_root}/services/#{@config[:authorization][:name].downcase}"
-      FileUtils.cp_r "#{@gem_root}/lib/service", dir
-      FileUtils.cp_r "#{@gem_root}/lib/authorization", dir
+      FileUtils.cp_r "#{@gem_root}/lib/service/.", dir
+      FileUtils.cp_r "#{@gem_root}/lib/authorization/.", dir
 
       puts ""
       puts "Authorization Service Database Configuration:"
