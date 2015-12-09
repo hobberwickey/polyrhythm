@@ -54,9 +54,11 @@ module Polyrhythm
     def init
       @config = JSON.parse( File.read("#{@gem_root}/lib/core/config.json"), {:symbolize_names => true})
       
-      FileUtils::copy "#{@gem_root}/lib/core/config.ru", "#{@app_root}/config.ru"
-      FileUtils::copy "#{@gem_root}/lib/core/Gemfile", "#{@app_root}/Gemfile"
-      FileUtils::copy "#{@gem_root}/lib/core/Gemfile", "#{@app_root}/Guardfile"
+      FileUtils.cp_r "#{@gem_root}/lib/core/.", @app_root
+
+      # FileUtils::copy "#{@gem_root}/lib/core/config.ru", "#{@app_root}/config.ru"
+      # FileUtils::copy "#{@gem_root}/lib/core/Gemfile", "#{@app_root}/Gemfile"
+      # FileUtils::copy "#{@gem_root}/lib/core/Guardfile", "#{@app_root}/Guardfile"
       
       puts ""
       puts "Building root service"
@@ -90,7 +92,7 @@ module Polyrhythm
       @db = db_config
       @db_url = "#{ DEFAULT_CONFIG[:db_roots][@db[:adapter].to_sym] }://#{ @db[:username] }#{ @db[:password] != '' ? '' : ':' }#{ @db[:password] }@localhost:#{ DEFAULT_CONFIG[:db_ports][@db[:adapter].to_sym] }/#{ @db[:name] }"
       
-      dir = "#{@app_root}/#{@name.downcase}"
+      dir = "#{@app_root}/services/#{@name.downcase}"
       FileUtils.cp_r "#{@gem_root}/lib/service/.", dir
 
       build_from_template "config.yml.erb", "#{dir}/config.yml"
@@ -107,8 +109,10 @@ module Polyrhythm
       @config[:authorization][:require_username] = ask("Would you like to require a username for authorization? y/n  " ) == "y" ? true : false
       @config[:authorization][:require_email] = ask("Would you like to require an email for authorization? y/n  " ) == "y" ? true : false
       
-      FileUtils.cp_r "#{@gem_root}/lib/service", "#{@app_root}/#{@config[:authorization][:name].downcase}"
-      FileUtils.cp_r "#{@gem_root}/lib/authorization", "#{@app_root}/#{@config[:authorization][:name].downcase}"
+
+      dir = "#{@app_root}/services/#{@config[:authorization][:name].downcase}"
+      FileUtils.cp_r "#{@gem_root}/lib/service", dir
+      FileUtils.cp_r "#{@gem_root}/lib/authorization", dir
 
       puts ""
       puts "Authorization Service Database Configuration:"
@@ -123,7 +127,7 @@ module Polyrhythm
       @db_url = "#{ DEFAULT_CONFIG[:db_roots][db_settings[:adapter].to_sym] }://#{ db_settings[:username] }#{ db_settings[:password] != '' ? '' : ':' }#{ db_settings[:password] }@localhost:#{ DEFAULT_CONFIG[:db_ports][db_settings[:adapter].to_sym] }/#{ db_settings[:name] }"
       @name = @config[:authorization][:name]
       
-      build_from_template "config.yml.erb", "#{@app_root}/#{@config[:authorization][:name].downcase}/config.yml"
+      build_from_template "config.yml.erb", "#{dir}/config.yml"
       
       if input("Setup authorization DB now? Warning destructive behavior! y/n ") == "y"
         ActiveRecord::Base.establish_connection(@db_url)

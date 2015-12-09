@@ -17,3 +17,5 @@ gem "sinatra-contrib"
 
 gem "activerecord", '>= 4.2.0'          # ORM
 
+gem "guard"
+gem "guard-rack"

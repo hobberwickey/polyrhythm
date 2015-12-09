@@ -60,7 +60,7 @@ end
 proxy = AppProxy.new
 
 SERVICES[:development][:local].each do |k, v|
-  require_relative "./#{v}/#{v}"
+  require_relative "./services/#{v}/#{v}"
   $service_map[k.to_s] = v.capitalize.constantize.new
 end
 
