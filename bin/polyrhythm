@@ -8,13 +8,13 @@ scaffold = Polyrhythm::Scaffold.new
 if command == "init"
   scaffold.init
 elsif command == 'build_service'
-  scaffold.build_service
+  scaffold.create_service ARGV[1]
 elsif command == 'build_auth'
   scaffold.build_auth
 elsif command == 'create_model'
-  scaffold.create_model ARGV[1]
+  scaffold.create_model ARGV[2], "/services/#{ARGV[1]}"
 elsif command == 'create_migration'
-  scaffold.create_migration ARGV[1]
+  scaffold.create_migration ARGV[2], "/services/#{ARGV[1]}"
 else 
   throw "Command Not Recognized"
 end

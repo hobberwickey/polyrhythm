@@ -53,7 +53,7 @@ module Polyrhythm
 
     def init
       @config = JSON.parse( File.read("#{@gem_root}/lib/core/config.json"), {:symbolize_names => true})
-      
+
       FileUtils.cp_r "#{@gem_root}/lib/core/.", @app_root
 
       # FileUtils::copy "#{@gem_root}/lib/core/config.ru", "#{@app_root}/config.ru"
@@ -61,7 +61,9 @@ module Polyrhythm
       # FileUtils::copy "#{@gem_root}/lib/core/Guardfile", "#{@app_root}/Guardfile"
       
       puts ""
+      puts "*********************"
       puts "Building root service"
+      puts "*********************"
       puts ""
 
       root_db = {
@@ -79,11 +81,32 @@ module Polyrhythm
       if input("Would you like to install the authorization service now? (y/n) ") == "y"
         puts ""
         build_auth
+        puts ""
       else
         puts ""
         #TODO: See if another auth service should be used
         write_config
       end
+
+      puts ""
+      puts "**************************************************"
+      puts "Configuration Successful!"
+      puts "Please run 'bundle install' to complete your setup"
+      puts "**************************************************"
+      puts ""
+    end
+
+    def create_service(name)
+      @config = JSON.parse( File.read("#{@app_root}/config.json"), {:symbolize_names => true})
+
+      db_config = {
+        :adapter => "pg", #input("Root service database adpater (default 'pg') ")
+        :user_name => ask("Database user:  "),
+        :password => ask("Database password:  "){ |q| q.echo = "*" },
+        :name => ask("Database name:  ")
+      }
+
+      build_service(name, "/#{name}", db_config)
     end
 
     def build_service(name, path, db_config)
@@ -92,7 +115,8 @@ module Polyrhythm
       @db = db_config
       @db_url = "#{ DEFAULT_CONFIG[:db_roots][@db[:adapter].to_sym] }://#{ @db[:username] }#{ @db[:password] != '' ? '' : ':' }#{ @db[:password] }@localhost:#{ DEFAULT_CONFIG[:db_ports][@db[:adapter].to_sym] }/#{ @db[:name] }"
       
-      dir = "#{@app_root}/services/#{@name.downcase}"
+      dir = ensure_directory_exists "#{@app_root}/services/#{@name.downcase}"
+
       FileUtils.cp_r "#{@gem_root}/lib/service/.", dir
 
       build_from_template "config.yml.erb", "#{dir}/config.yml"
@@ -110,12 +134,15 @@ module Polyrhythm
       @config[:authorization][:require_email] = ask("Would you like to require an email for authorization? y/n  " ) == "y" ? true : false
       
 
-      dir = "#{@app_root}/services/#{@config[:authorization][:name].downcase}"
+      dir = ensure_directory_exists "#{@app_root}/services/#{@config[:authorization][:name].downcase}"
+
       FileUtils.cp_r "#{@gem_root}/lib/service/.", dir
       FileUtils.cp_r "#{@gem_root}/lib/authorization/.", dir
 
       puts ""
-      puts "Authorization Service Database Configuration:"
+      puts "********************************************"
+      puts "Authorization Service Database Configuration"
+      puts "********************************************"
       puts ""
 
       db_settings = @config[:authorization][:database]
@@ -202,13 +229,12 @@ module Polyrhythm
 
         end
 
-        @config[:services][:development][:local]["/#{@config[:authorization][:name].downcase}"] = @config[:authorization][:name].downcase
-        write_config
       else
         puts "You will need to manually set up your auth DB"
       end
 
-
+      @config[:services][:development][:local]["/#{@config[:authorization][:name].downcase}"] = @config[:authorization][:name].downcase
+      write_config
     end
 
     def create_model(name, root=nil)
@@ -271,6 +297,8 @@ module Polyrhythm
       unless File.directory?(dirname)
         FileUtils.mkdir_p(dirname)
       end
+
+      dest
     end
   end
 

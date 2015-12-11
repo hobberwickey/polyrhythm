@@ -26,6 +26,6 @@ class <%= @name.capitalize %> < Sinatra::Base
   helpers Sinatra::Cookies
 
   get "/" do
-    siren Widget.all.first
+    erb :index
   end
 end
